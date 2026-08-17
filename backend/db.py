@@ -67,7 +67,11 @@ class PostgresStore:
         self._lock = threading.Lock()
 
     def _connect(self):
-        return self._psycopg.connect(self.dsn, autocommit=True)
+        import psycopg.rows
+        conn = self._psycopg.connect(self.dsn, autocommit=True)
+        # Return dict-like rows so _row() can index by column name.
+        conn.row_factory = psycopg.rows.dict_row
+        return conn
 
     def init(self):
         with self._connect() as conn, conn.cursor() as cur:
