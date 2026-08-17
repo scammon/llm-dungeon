@@ -111,6 +111,8 @@ class Engine:
             snap["room"] = self._room_snapshot()
             snap["player"] = self._player_snapshot()
             snap["combat"] = self._combat_snapshot()
+            if self.screen == "explore":
+                snap["map"] = self._floor_map()
         return snap
 
     def _meta_snapshot(self):
@@ -160,6 +162,29 @@ class Engine:
             "doors": doors,
             "is_exit": room["id"] == self.floor["exit_room"],
             "has_stairs": room["id"] == self.floor["exit_room"] and self.depth < config.MAX_FLOORS,
+        }
+
+    def _floor_map(self):
+        rooms = []
+        for rid, room in self.floor["rooms"].items():
+            if not room["discovered"]:
+                continue
+            rooms.append({
+                "id": rid,
+                "type": room["type"],
+                "label": TYPE_LABEL[room["type"]],
+                "cleared": room["cleared"],
+                "is_current": rid == self.current,
+                "is_exit": rid == self.floor["exit_room"],
+                "is_boss": rid == self.floor["boss_room"],
+                "connections": [cid for cid in room["connections"]
+                                 if self.floor["rooms"][cid]["discovered"]],
+            })
+        return {
+            "depth": self.depth,
+            "start": self.floor["start"],
+            "current": self.current,
+            "rooms": rooms,
         }
 
     def _player_snapshot(self):
@@ -309,6 +334,8 @@ class Engine:
             self._unequip(action.get("slot"))
         elif t == "drop":
             self._drop(action.get("arg"))
+        elif t == "use":
+            self._use_item(action.get("n"))
         elif t == "freeform":
             self._freeform(action.get("text", ""))
         else:
@@ -384,6 +411,19 @@ class Engine:
         self.meta.best_depth = max(self.meta.best_depth, self.depth)
         self._feed("system", f"You descend the stairs to depth {self.depth}.")
         self._enter_room()
+
+    def _use_item(self, n):
+        try:
+            n = int(n)
+        except (TypeError, ValueError):
+            self._feed("system", "Which item? (numbered in your pack)")
+            return
+        inv = self.player.inventory
+        if n < 1 or n > len(inv):
+            self._feed("system", "No such item in your pack.")
+            return
+        ok, msg = self.player.use_item(inv[n - 1]["id"])
+        self._feed("system" if not ok else "loot", msg)
 
     # ---- individual explore actions ----------------------------------
     def _room_npc(self):

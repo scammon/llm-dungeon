@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Action, Snapshot } from "../types";
 import { Icon } from "./Icon";
+import { DungeonMap } from "./DungeonMap";
 
 // Turn a freeform line into a structured action when it matches a command,
 // otherwise pass it through as freeform narration.
@@ -31,6 +32,7 @@ export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Acti
 
   return (
     <div className="explore">
+      {snap.map && <DungeonMap map={snap.map} />}
       <div className="room">
         <div className="room-head">
           <span className="room-type">{room.label}</span>

@@ -79,6 +79,24 @@ export interface Room {
   has_stairs: boolean;
 }
 
+export interface MapRoom {
+  id: string;
+  type: string;
+  label: string;
+  cleared: boolean;
+  is_current: boolean;
+  is_exit: boolean;
+  is_boss: boolean;
+  connections: string[];
+}
+
+export interface FloorMap {
+  depth: number;
+  start: string;
+  current: string;
+  rooms: MapRoom[];
+}
+
 export interface EquipItem {
   name: string;
   rarity: string;
@@ -162,6 +180,7 @@ export interface Snapshot {
   room?: Room;
   player?: Player;
   combat?: Combat | null;
+  map?: FloorMap;
 }
 
 export interface Action {

@@ -94,17 +94,25 @@ export function PlayerPanel({ player, onAction }: { player: Player; onAction: (a
         <div className="inv-list">
           {player.inventory.map((it) => {
             const isEquip = SLOTS.includes(it.slot);
+            const isConsumable = it.slot === "consumable";
+            const clickable = isEquip || isConsumable;
             return (
               <button
                 key={it.n}
                 className="inv-item"
-                disabled={!isEquip}
+                disabled={!clickable}
                 title={
                   isEquip
                     ? `${it.name} (${it.rarity})\n${statLine(it.stats)}\nClick to equip`
-                    : `${it.name} (${it.rarity})\n${it.effect || ""} ${it.power ?? ""}`
+                    : isConsumable
+                    ? `${it.name} (${it.rarity})\n${it.effect || ""} ${it.power ?? ""}\nClick to use`
+                    : `${it.name} (${it.rarity})`
                 }
-                onClick={() => isEquip && onAction({ type: "equip", arg: String(it.n) })}
+                onClick={() =>
+                  isEquip
+                    ? onAction({ type: "equip", arg: String(it.n) })
+                    : isConsumable && onAction({ type: "use", n: it.n })
+                }
               >
                 <span className="inv-n">{it.n}</span>
                 <Icon name={itemIcon(it.slot, it.name)} size={20} style={{ color: rarityColor(it.rarity) }} />
