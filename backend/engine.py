@@ -28,7 +28,14 @@ TYPE_LABEL = {
     "ruin": "a collapsed ruin",
     "library": "a flooded archive",
     "pit": "a railed edge over a pit",
+    "market": "a candlelit market",
+    "forge": "a smith's forge",
 }
+
+
+def _norm_spell(s):
+    """Lowercase alphanumeric-only form, so 'Power Word: Stun' matches 'power word stun'."""
+    return "".join(ch for ch in (s or "").lower() if ch.isalnum())
 
 
 def stat_str(stats):
@@ -130,6 +137,13 @@ class Engine:
                 "desc": sp["desc"], "attune_cost": m.attune_cost(sid),
                 "attune_max": att >= config.ATTUNE_MAX,
             })
+        spare_tomes = []
+        for sid in m.spare_tomes:
+            sp = data.SPELLS[sid]
+            spare_tomes.append({
+                "id": sid, "name": sp["name"], "element": sp["element"], "tier": sp["tier"],
+                "desc": sp["desc"],
+            })
         codex = []
         for key, text in m.codex.items():
             title, _ = data.LORE[key]
@@ -137,7 +151,11 @@ class Engine:
         return {
             "essence": m.essence, "runs": m.runs, "deaths": m.deaths,
             "best_depth": m.best_depth, "total_essence": m.total_essence,
-            "upgrades": upgrades, "grimoire": grimoire, "codex": codex,
+            "upgrades": upgrades, "grimoire": grimoire, "spare_tomes": spare_tomes,
+            "codex": codex,
+            "grimoire_capacity": m.grimoire_capacity,
+            "grimoire_cost": m.grimoire_cost(),
+            "grimoire_max": m.grimoire_capacity >= config.GRIMOIRE_MAX,
         }
 
     def _room_snapshot(self):
@@ -149,13 +167,19 @@ class Engine:
             t = self.floor["rooms"][cid]["type"]
             doors.append({"n": i, "type": t, "label": TYPE_LABEL[t],
                           "discovered": self.floor["rooms"][cid]["discovered"]})
+        alive_npcs = [n for n in room["npcs"] if n["alive"]]
+        shop = next((n for n in alive_npcs if n["role"] == "shop"), None)
+        stock = [{"n": i, "name": s["name"], "rarity": s["rarity"],
+                  "value": s["value"], "slot": s["slot"]}
+                 for i, s in enumerate(shop["stock"], 1)] if shop else []
         return {
             "depth": self.depth,
             "type": room["type"],
             "label": TYPE_LABEL[room["type"]],
             "scene": self._scene_text(room),
             "monsters": [{"name": m["name"], "is_boss": m["is_boss"]} for m in mons],
-            "npcs": [{"name": n["name"], "role": n["role"]} for n in room["npcs"] if n["alive"]],
+            "npcs": [{"name": n["name"], "role": n["role"]} for n in alive_npcs],
+            "stock": stock,
             "item_count": len(room["items"]),
             "tome_count": len(room["tomes"]),
             "has_lore": bool(room["lore"]),
@@ -196,7 +220,8 @@ class Engine:
                             if it else None)
         inventory = []
         for i, it in enumerate(p.inventory, 1):
-            entry = {"n": i, "name": it["name"], "rarity": it["rarity"], "slot": it["slot"]}
+            entry = {"n": i, "name": it["name"], "rarity": it["rarity"],
+                     "slot": it["slot"], "value": it.get("value", 0)}
             if it["slot"] in SLOTS:
                 entry["stats"] = it["stats"]
             else:
@@ -253,6 +278,14 @@ class Engine:
                 self._feed("system", msg)
             else:
                 self._feed("system", "Name a spell you've learned (see grimoire).")
+        elif t == "hub_grimoire":
+            ok, msg = self.meta.buy_grimoire()
+            self._feed("system", msg)
+        elif t == "hub_use_tome":
+            ok, msg = self.meta.bind_spare_tome(
+                self._resolve_spell(action.get("spell", "")),
+                self._resolve_spell(action.get("arg", "")))
+            self._feed("system", msg)
         elif t == "hub_dismiss":
             self._clear_run()
         else:
@@ -288,11 +321,11 @@ class Engine:
         self.combat = None
 
     def _resolve_spell(self, arg):
-        arg = (arg or "").lower()
+        arg = _norm_spell(arg)
         for sid, sp in data.SPELLS.items():
-            if arg in (sid.lower(), sp["name"].lower()):
+            if arg in (_norm_spell(sid), _norm_spell(sp["name"])):
                 return sid
-            if arg and arg in sp["name"].lower():
+            if arg and arg in _norm_spell(sp["name"]):
                 return sid
         return None
 
@@ -367,11 +400,28 @@ class Engine:
 
     def _learn_tome(self, tome):
         sid = tome["spell_id"]
+        name = data.SPELLS[sid]["name"]
         if self.player.knows(sid):
-            self._feed("system", f"You already know {data.SPELLS[sid]['name']}. The tome crumbles to dust.")
-        else:
-            self.player.learn_spell(sid)
-            self._feed("loot", f"* You learn {data.SPELLS[sid]['name']}! It is added to your grimoire forever.")
+            att = self.player.attune_run(sid)
+            self._feed("system",
+                       f"You already know {name}. The tome deepens your attunement "
+                       f"to {att} for this run.")
+            return
+        ok, msg = self.player.learn_spell(sid)
+        if not ok:
+            if msg == "full":
+                if sid in self.meta.spare_tomes:
+                    self._feed("system",
+                               f"Your grimoire is full and you already keep a spare tome of {name}.")
+                else:
+                    self.meta.spare_tomes.append(sid)
+                    self._feed("system",
+                               f"Your grimoire is full. You tuck the tome of {name} away to "
+                               f"bind later at the camp.")
+            else:
+                self._feed("system", msg)
+            return
+        self._feed("loot", f"* You learn {name}! It is added to your grimoire forever.")
 
     def _discover_lore(self, key):
         if key in self.meta.codex:
@@ -541,6 +591,12 @@ class Engine:
             return
         if npc.get("taught_spell"):
             self._feed("system", "The Sage has nothing more to teach you this descent.")
+            return
+        if len(self.player.grimoire) >= self.meta.grimoire_capacity:
+            cap = self.meta.grimoire_capacity
+            self._feed("system",
+                       f"Your grimoire is full ({cap}/{cap}). Bind more pages at the camp "
+                       f"before the Sage can teach you.")
             return
         tier = gen.depth_tier(self.depth)
         pool = [sid for sid in data.SPELLS

@@ -27,6 +27,7 @@ class Player:
         self.equipment = {s: None for s in SLOTS}
         self.inventory = []
         self.grimoire = list(meta.grimoire)          # spells castable this run
+        self.run_attunements = {}                     # run-only attunement boosts (tomes of known spells)
         self.status = []                              # active effects this run
 
         # refresh derived pools
@@ -131,15 +132,26 @@ class Player:
         return spell_id in self.grimoire
 
     def learn_spell(self, spell_id):
-        """Learn a spell *permanently* (persisted to meta.grimoire)."""
-        if spell_id not in self.meta.grimoire:
-            self.meta.grimoire.append(spell_id)
-        if spell_id not in self.grimoire:
-            self.grimoire.append(spell_id)
-        return True
+        """Learn a spell *permanently* (persisted to meta.grimoire).
+
+        Returns (ok, msg). Fails with msg=="full" when the grimoire has no
+        free spell slots (expand it at the camp to learn more)."""
+        if spell_id in self.meta.grimoire:
+            return False, f"You already know {data.SPELLS[spell_id]['name']}."
+        if len(self.meta.grimoire) >= self.meta.grimoire_capacity:
+            return False, "full"
+        self.meta.grimoire.append(spell_id)
+        self.grimoire.append(spell_id)
+        return True, "learned"
 
     def attunement(self, spell_id):
-        return self.meta.attunements.get(spell_id, 0)
+        # persistent (essence-bought) + run-only (tomes of spells already known)
+        return self.meta.attunements.get(spell_id, 0) + self.run_attunements.get(spell_id, 0)
+
+    def attune_run(self, spell_id):
+        """Deepen a known spell's attunement for this run only (discarded on death)."""
+        self.run_attunements[spell_id] = self.run_attunements.get(spell_id, 0) + 1
+        return self.attunement(spell_id)
 
     def spell_cost(self, spell_id):
         sp = data.SPELLS[spell_id]

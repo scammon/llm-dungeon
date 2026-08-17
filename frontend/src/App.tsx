@@ -158,6 +158,9 @@ export default function App() {
   }
 
   const inRun = snap.screen === "explore" || snap.screen === "combat";
+  const canSell = !!(
+    snap.room?.npcs?.some((n) => n.role === "shop" || n.role === "blacksmith")
+  );
 
   return (
     <div className="game">
@@ -204,7 +207,9 @@ export default function App() {
           )}
           <Feed items={snap.feed} />
         </div>
-        {snap.player && <PlayerPanel player={snap.player} onAction={doAction} />}
+        {snap.player && (
+          <PlayerPanel player={snap.player} canSell={canSell} onAction={doAction} />
+        )}
       </div>
 
       {busy && <div className="busy-veil" />}

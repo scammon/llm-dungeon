@@ -30,6 +30,14 @@ export interface GrimoireSpell {
   attune_max: boolean;
 }
 
+export interface SpareTome {
+  id: string;
+  name: string;
+  element: string;
+  tier: number;
+  desc: string;
+}
+
 export interface CodexEntry {
   key: string;
   title: string;
@@ -44,7 +52,11 @@ export interface Meta {
   total_essence: number;
   upgrades: Upgrade[];
   grimoire: GrimoireSpell[];
+  spare_tomes: SpareTome[];
   codex: CodexEntry[];
+  grimoire_capacity: number;
+  grimoire_cost: number | null;
+  grimoire_max: boolean;
 }
 
 export interface Door {
@@ -71,6 +83,7 @@ export interface Room {
   scene: string;
   monsters: RoomMonster[];
   npcs: RoomNpc[];
+  stock: StockItem[];
   item_count: number;
   tome_count: number;
   has_lore: boolean;
@@ -108,9 +121,18 @@ export interface InvItem {
   name: string;
   rarity: string;
   slot: string;
+  value?: number;
   stats?: Record<string, number>;
   effect?: string;
   power?: number | string;
+}
+
+export interface StockItem {
+  n: number;
+  name: string;
+  rarity: string;
+  value: number;
+  slot: string;
 }
 
 export interface Spell {

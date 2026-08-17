@@ -30,10 +30,17 @@ TYPE_LABEL = {
     "ruin": "a collapsed ruin",
     "library": "a flooded archive",
     "pit": "a railed edge over a pit",
+    "market": "a candlelit market",
+    "forge": "a smith's forge",
 }
 
 EXPLORE_PROMPT = "\033[36m  >\033[0m "
 HUB_PROMPT = "\033[35m  camp>\033[0m "
+
+
+def _norm_spell(s):
+    """Lowercase alphanumeric-only form, so 'Power Word: Stun' matches 'power word stun'."""
+    return "".join(ch for ch in (s or "").lower() if ch.isalnum())
 
 
 def stat_str(stats):
@@ -108,6 +115,12 @@ class Game:
                 else:
                     msg = "Name a spell you've learned (see grimoire)."
                 print("  " + msg)
+            elif line in ("expand", "bind", "page"):
+                ok, msg = self.meta.buy_grimoire()
+                self.meta.save()
+                print("  " + msg)
+            elif line == "tome" or line.startswith("tome "):
+                self.do_bind_tome(line)
             elif line in ("codex", "lore", "c"):
                 self.show_codex()
             elif line in ("spells", "s", "grimoire", "g"):
@@ -131,9 +144,13 @@ class Game:
         print("  Base upgrades (costs in essence):")
         for k in ("hp", "mana", "atk", "defense", "sp_power"):
             print(f"    {k:9} lvl {m.up.get(k, 0):<2}  next {m.upgrade_cost(k)}")
-        print(f"  Grimoire: {len(m.grimoire)} spell(s)    Attunements: {sum(m.attunements.values())}")
+        gc = m.grimoire_cost()
+        gc_txt = f"next slot {gc}" if gc else "fully bound"
+        spare_txt = f"    Spare tomes: {len(m.spare_tomes)}" if m.spare_tomes else ""
+        print(f"  Grimoire: {len(m.grimoire)}/{m.grimoire_capacity} spell slots    "
+              f"Attunements: {sum(m.attunements.values())}    ({gc_txt}){spare_txt}")
         print()
-        print(ui.gray("  begin | upgrade <hp|mana|atk|def|sp_power> | attune <spell> | codex | grimoire | help | quit"))
+        print(ui.gray("  begin | upgrade <hp|mana|atk|def|sp_power> | attune <spell> | expand | tome | codex | grimoire | help | quit"))
 
     def show_grimoire(self):
         m = self.meta
@@ -162,6 +179,8 @@ class Game:
             "begin      start a new descent",
             "upgrade X  spend essence on a permanent base stat (hp, mana, atk, def, sp_power)",
             "attune S   spend essence to strengthen a spell you've learned",
+            "expand     spend essence to bind a new spell slot in your grimoire",
+            "tome       list spare tomes; 'tome <spell> [forget <spell>]' binds one",
             "codex      read your discovered lore",
             "grimoire   review learned spells",
             "quit       save and exit",
@@ -171,13 +190,44 @@ class Game:
         ]))
 
     def resolve_spell(self, arg):
-        arg = arg.lower()
+        arg = _norm_spell(arg)
         for sid, sp in data.SPELLS.items():
-            if arg in (sid.lower(), sp["name"].lower()):
+            if arg in (_norm_spell(sid), _norm_spell(sp["name"])):
                 return sid
-            if arg in sp["name"].lower():
+            if arg and arg in _norm_spell(sp["name"]):
                 return sid
         return None
+
+    def do_bind_tome(self, line):
+        m = self.meta
+        if not m.spare_tomes:
+            print("  You carry no spare tomes. Find tomes of new spells while your grimoire is full.")
+            return
+        parts = line.split(None, 1)
+        if len(parts) < 2:
+            print(ui.bold("  Spare tomes you carry:"))
+            for sid in m.spare_tomes:
+                sp = data.SPELLS[sid]
+                print(f"    {ui.cyan(sp['name'])} (tier {sp['tier']}) — {sp['desc']}")
+            print(ui.gray("  tome <spell> [forget <spell>]   bind a spare tome (forget a known spell if the grimoire is full)"))
+            return
+        arg = parts[1]
+        # spell names contain spaces, so split on the ' forget ' delimiter
+        low = arg.lower()
+        if " forget " in low:
+            idx = low.index(" forget ")
+            tome_sid = self.resolve_spell(arg[:idx])
+            replace_sid = self.resolve_spell(arg[idx + len(" forget "):])
+        else:
+            tome_sid = self.resolve_spell(arg)
+            replace_sid = None
+        if not tome_sid:
+            print("  Name a spare tome's spell (see 'tome').")
+            return
+        ok, msg = m.bind_spare_tome(tome_sid, replace_sid)
+        if ok:
+            m.save()
+        print("  " + msg)
 
     # ===================================================================
     # RUN
@@ -291,12 +341,25 @@ class Game:
 
     def learn_tome(self, tome):
         sid = tome["spell_id"]
+        name = data.SPELLS[sid]["name"]
         if self.player.knows(sid):
-            print(ui.gray(f"  You already know {data.SPELLS[sid]['name']}. The tome crumbles to dust."))
-        else:
-            self.player.learn_spell(sid)
-            self.meta.save()
-            print(ui.magenta(f"  * You learn {data.SPELLS[sid]['name']}! It is added to your grimoire forever."))
+            att = self.player.attune_run(sid)
+            print(ui.gray(f"  You already know {name}. The tome deepens your attunement to {att} for this run."))
+            return
+        ok, msg = self.player.learn_spell(sid)
+        if not ok:
+            if msg == "full":
+                if sid in self.meta.spare_tomes:
+                    print(ui.yellow(f"  Your grimoire is full and you already keep a spare tome of {name}."))
+                else:
+                    self.meta.spare_tomes.append(sid)
+                    self.meta.save()
+                    print(ui.yellow(f"  Your grimoire is full. You tuck the tome of {name} away to bind later at the camp."))
+            else:
+                print(ui.gray(f"  {msg}"))
+            return
+        self.meta.save()
+        print(ui.magenta(f"  * You learn {name}! It is added to your grimoire forever."))
 
     def discover_lore(self, key):
         if key in self.meta.codex:

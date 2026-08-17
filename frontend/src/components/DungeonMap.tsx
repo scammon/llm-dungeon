@@ -63,6 +63,8 @@ const TYPE_COLOR: Record<string, string> = {
   shrine: "var(--sp)",
   library: "var(--mana)",
   pit: "var(--essence)",
+  market: "var(--market)",
+  forge: "var(--forge)",
 };
 
 export function DungeonMap({ map }: { map: FloorMap }) {

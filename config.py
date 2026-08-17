@@ -57,4 +57,10 @@ DEF_STEP = 1
 SP_POWER_STEP = 2
 ATTUNE_MAX = 5
 
+# Grimoire: how many spells you can keep (cast) at once. Starts small; spend
+# a lot of essence at the camp to bind more spell slots.
+START_GRIMOIRE_SLOTS = 4
+GRIMOIRE_BASE_COST = 40   # essence for the first extra slot (4 -> 5)
+GRIMOIRE_MAX = 8          # hard cap on spell slots
+
 SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "save.json")

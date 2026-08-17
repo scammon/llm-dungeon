@@ -1,8 +1,16 @@
-import type { Action, Player } from "../types";
+import type { Action, InvItem, Player } from "../types";
 import { Icon } from "./Icon";
 import { itemIcon, rarityColor, statLine } from "../helpers";
 
 const SLOTS = ["weapon", "armor", "helm", "boots", "trinket"];
+
+// Mirrors the backend sell price: equipment = value//2, consumables = power//2.
+function sellPriceOf(it: InvItem): number {
+  const isEquip = SLOTS.includes(it.slot);
+  return isEquip
+    ? Math.max(1, Math.floor((it.value ?? 0) / 2))
+    : Math.max(1, Math.floor((typeof it.power === "number" ? it.power : 4) / 2));
+}
 
 function Bar({ value, max, color }: { value: number; max: number; color: string }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
@@ -16,7 +24,7 @@ function Bar({ value, max, color }: { value: number; max: number; color: string 
   );
 }
 
-export function PlayerPanel({ player, onAction }: { player: Player; onAction: (a: Action) => void }) {
+export function PlayerPanel({ player, canSell, onAction }: { player: Player; canSell: boolean; onAction: (a: Action) => void }) {
   return (
     <aside className="panel">
       <div className="panel-block">
@@ -95,32 +103,45 @@ export function PlayerPanel({ player, onAction }: { player: Player; onAction: (a
           {player.inventory.map((it) => {
             const isEquip = SLOTS.includes(it.slot);
             const isConsumable = it.slot === "consumable";
-            const clickable = isEquip || isConsumable;
+            const sell = canSell ? sellPriceOf(it) : null;
+            const detail = isEquip
+              ? statLine(it.stats)
+              : `${it.effect || ""} ${it.power ?? ""}`.trim();
+            const tooltip = [
+              `${it.name} (${it.rarity})`,
+              detail,
+              sell !== null ? `Sell for ${sell}g` : null,
+            ]
+              .filter(Boolean)
+              .join("\n");
             return (
-              <button
-                key={it.n}
-                className="inv-item"
-                disabled={!clickable}
-                title={
-                  isEquip
-                    ? `${it.name} (${it.rarity})\n${statLine(it.stats)}\nClick to equip`
-                    : isConsumable
-                    ? `${it.name} (${it.rarity})\n${it.effect || ""} ${it.power ?? ""}\nClick to use`
-                    : `${it.name} (${it.rarity})`
-                }
-                onClick={() =>
-                  isEquip
-                    ? onAction({ type: "equip", arg: String(it.n) })
-                    : isConsumable && onAction({ type: "use", n: it.n })
-                }
-              >
+              <div key={it.n} className="inv-item" title={tooltip}>
                 <span className="inv-n">{it.n}</span>
                 <Icon name={itemIcon(it.slot, it.name)} size={20} style={{ color: rarityColor(it.rarity) }} />
-                <span className="inv-name" style={{ color: rarityColor(it.rarity) }}>
-                  {it.name}
-                </span>
-                <span className="inv-sub muted">{statLine(it.stats) || it.effect || ""}</span>
-              </button>
+                <div className="inv-main">
+                  <span className="inv-name" style={{ color: rarityColor(it.rarity) }}>
+                    {it.name}
+                  </span>
+                  {detail && <span className="inv-sub muted">{detail}</span>}
+                </div>
+                <div className="inv-actions">
+                  {isEquip && (
+                    <button className="btn-tiny" onClick={() => onAction({ type: "equip", arg: String(it.n) })}>
+                      Equip
+                    </button>
+                  )}
+                  {isConsumable && (
+                    <button className="btn-tiny" onClick={() => onAction({ type: "use", n: it.n })}>
+                      Use
+                    </button>
+                  )}
+                  {sell !== null && (
+                    <button className="btn-tiny btn-sell" onClick={() => onAction({ type: "sell", n: it.n })}>
+                      Sell {sell}g
+                    </button>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>

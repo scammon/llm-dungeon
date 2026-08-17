@@ -235,10 +235,18 @@ def make_floor(rng, depth):
     non_special = [i for i in ids if i not in (start, boss_room)]
     if non_special:
         rooms[rng.choice(non_special)]["type"] = "treasure"
-        if len(non_special) > 1:
-            cand = [x for x in non_special if rooms[x]["type"] != "treasure"]
-            if cand:
-                rooms[rng.choice(cand)]["type"] = "library" if rng.random() < 0.5 else "shrine"
+        normal = lambda: [x for x in non_special
+                          if rooms[x]["type"] in ("chamber", "corridor", "ruin", "pit")]
+        # a shop on most floors (buy / sell)
+        if rng.random() < 0.75:
+            cand = normal()
+            if len(cand) > 2:
+                rooms[rng.choice(cand)]["type"] = "market"
+        # one more themed room: sage / healer / smith
+        if rng.random() < 0.6:
+            cand = normal()
+            if len(cand) > 2:
+                rooms[rng.choice(cand)]["type"] = rng.choice(["library", "shrine", "forge"])
     # a camp/rest room sometimes
     if non_special and rng.random() < 0.5:
         cand = [x for x in non_special if rooms[x]["type"] in ("chamber", "corridor")]
@@ -266,10 +274,18 @@ def make_floor(rng, depth):
             room["tomes"].append(make_tome(rng, pick_spell_for_depth(rng, depth, tier=depth_tier(depth)), depth))
             if rng.random() < 0.5:
                 room["lore"].append(rng.choice(list(data.LORE.keys())))
+        elif rtype == "market":
+            room["npcs"].append(make_npc(rng, "merchant", depth))
+            if rng.random() < 0.5:
+                room["items"].append(roll_loot(rng, depth, count=1)[0])
+        elif rtype == "forge":
+            room["npcs"].append(make_npc(rng, "blacksmith", depth))
         elif rtype == "library":
             for _ in range(rng.randint(2, 3)):
                 room["tomes"].append(make_tome(rng, pick_spell_for_depth(rng, depth), depth))
             room["lore"].append(rng.choice(list(data.LORE.keys())))
+            if rng.random() < 0.7:
+                room["npcs"].append(make_npc(rng, "sage", depth))
         elif rtype == "shrine":
             if rng.random() < 0.6:
                 room["npcs"].append(make_npc(rng, "hermit", depth))

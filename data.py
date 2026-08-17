@@ -272,4 +272,6 @@ ROOM_FLAVOR = {
     "ruin": "a collapsed ruin, beams and rubble",
     "library": "a flooded archive of blackened tomes",
     "pit": "a railed edge over a lightless pit",
+    "market": "a candlelit market of stalls and haggling voices",
+    "forge": "a smith's forge, sparks drifting from a dying coals",
 }

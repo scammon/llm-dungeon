@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Action, Snapshot } from "../types";
 import { Icon } from "./Icon";
 import { DungeonMap } from "./DungeonMap";
+import { rarityColor } from "../helpers";
 
 // Turn a freeform line into a structured action when it matches a command,
 // otherwise pass it through as freeform narration.
@@ -23,6 +24,7 @@ export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Acti
   const room = snap.room!;
   const npc = room.npcs[0];
   const depth = room.depth;
+  const gold = snap.player?.gold ?? 0;
 
   const submit = () => {
     if (!cmd.trim()) return;
@@ -58,6 +60,34 @@ export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Acti
         )}
       </div>
 
+      {room.stock.length > 0 && (
+        <div className="shop">
+          <div className="shop-head">
+            <Icon name="ui_coin" size={14} className="c-gold" />
+            <span className="shop-title">{npc?.name ?? "Merchant"}'s wares</span>
+            <span className="muted small">{gold}g</span>
+          </div>
+          <div className="shop-list">
+            {room.stock.map((s) => (
+              <div key={s.n} className="shop-item">
+                <span className="shop-n">{s.n}</span>
+                <span className="shop-name" style={{ color: rarityColor(s.rarity) }}>
+                  {s.name}
+                </span>
+                <span className="shop-price c-gold">{s.value}g</span>
+                <button
+                  className="btn-tiny"
+                  disabled={gold < s.value}
+                  onClick={() => onAction({ type: "buy", n: s.n })}
+                >
+                  Buy
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="action-grid">
         {room.doors.map((d) => (
           <button key={d.n} className="btn" onClick={() => onAction({ type: "move", n: d.n })}>
@@ -68,16 +98,6 @@ export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Acti
         {room.has_stairs && (
           <button className="btn btn-primary" onClick={() => onAction({ type: "descend" })}>
             <Icon name="ui_skull" size={16} /> Descend to depth {depth + 1}
-          </button>
-        )}
-        {npc?.role === "shop" && (
-          <button className="btn" onClick={() => onAction({ type: "buy" })}>
-            Browse wares
-          </button>
-        )}
-        {npc && (npc.role === "shop" || npc.role === "blacksmith") && (
-          <button className="btn" onClick={() => onAction({ type: "sell", n: 1 })} title="Type 'sell N' to sell pack item N">
-            Sell…
           </button>
         )}
         {npc?.role === "sage" && (
