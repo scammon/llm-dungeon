@@ -23,5 +23,7 @@ COPY backend/ ./backend/
 # Built frontend (served by backend.main)
 COPY --from=frontend /build/dist ./frontend/dist/
 
+# Listen on the platform-assigned host/port (Dailey injects HOST + PORT).
+# Falls back to 0.0.0.0:8000 for local runs.
 EXPOSE 8000
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD uvicorn backend.main:app --host ${HOST:-0.0.0.0} --port ${PORT:-8000}
