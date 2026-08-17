@@ -124,7 +124,7 @@ class Engine:
             att = m.attunements.get(sid, 0)
             grimoire.append({
                 "id": sid, "name": sp["name"], "element": sp["element"], "tier": sp["tier"],
-                "attuned": att, "cost": max(1, sp["cost"] - att), "power": sp["power"] + att * 2,
+                "attuned": att, "cost": max(1, sp["cost"] - att), "power": sp.get("power", 0) + att * 2,
                 "desc": sp["desc"], "attune_cost": m.attune_cost(sid),
                 "attune_max": att >= config.ATTUNE_MAX,
             })
