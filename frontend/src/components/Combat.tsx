@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Action, Snapshot } from "../types";
 import { Icon } from "./Icon";
-import { monsterIcon } from "../helpers";
+import { Sprite } from "./Sprite";
 
 function needsTarget(kind: string, aoe: boolean): boolean {
   return (kind === "damage" || kind === "debuff" || kind === "control") && !aoe;
@@ -30,7 +30,9 @@ export function Combat({ snap, onAction }: { snap: Snapshot; onAction: (a: Actio
       <div className="monster-row">
         {mons.map((m) => (
           <div key={m.n} className={`monster-card ${m.is_boss ? "boss" : ""}`}>
-            <Icon name={monsterIcon(m.name)} size={m.is_boss ? 56 : 40} className="c-monster" />
+            <div className="sprite-stage">
+              <Sprite name={m.name} size={m.is_boss ? 168 : 132} />
+            </div>
             <div className="monster-name">
               {m.name}
               {m.is_boss && <em className="boss-tag">BOSS</em>}

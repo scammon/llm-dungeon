@@ -866,24 +866,42 @@ body {
 .monster-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
   justify-content: center;
 }
 .monster-card {
-  background: var(--bg2);
+  position: relative;
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(120, 90, 160, 0.10), transparent 60%),
+    linear-gradient(180deg, #14111c 0%, var(--bg2) 78%);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 16px;
-  width: 150px;
+  border-radius: 12px;
+  padding: 10px 14px 14px;
+  width: 176px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  overflow: hidden;
+}
+.sprite-stage {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 6px 0 2px;
+}
+.sprite {
+  display: block;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5));
 }
 .monster-card.boss {
   border-color: #6a3a2a;
-  background: linear-gradient(180deg, #241418, var(--bg2));
-  width: 180px;
+  width: 204px;
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(200, 80, 60, 0.16), transparent 60%),
+    linear-gradient(180deg, #241418 0%, var(--bg2) 78%);
+  box-shadow: 0 0 24px rgba(180, 60, 40, 0.28);
 }
 .monster-name {
   font-family: var(--font-serif);
