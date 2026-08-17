@@ -27,30 +27,53 @@ export function Combat({ snap, onAction }: { snap: Snapshot; onAction: (a: Actio
         {combat.defending && <span className="c-shield"> · defending</span>}
       </div>
 
-      <div className="monster-row">
-        {mons.map((m) => (
-          <div key={m.n} className={`monster-card ${m.is_boss ? "boss" : ""}`}>
-            <div className="sprite-stage">
-              <Sprite name={m.name} size={m.is_boss ? 168 : 132} />
-            </div>
-            <div className="monster-name">
-              {m.name}
-              {m.is_boss && <em className="boss-tag">BOSS</em>}
-            </div>
+      <div className="dungeon-stage">
+        <div className="stage-actors">
+          <div className="actor actor-player">
+            <img
+              className="sprite"
+              src="/sprites/hero.svg"
+              alt="You"
+              width={128}
+              height={134}
+              draggable={false}
+            />
+            <div className="actor-name">You</div>
             <div className="bar bar-sm">
               <div
                 className="bar-fill"
-                style={{ width: `${(m.hp / m.max_hp) * 100}%`, background: "var(--hp)" }}
+                style={{ width: `${(player.hp / player.max_hp) * 100}%`, background: "var(--hp)" }}
               />
               <span className="bar-label">
-                {m.hp}/{m.max_hp}
+                {player.hp}/{player.max_hp}
               </span>
             </div>
-            {m.status.length > 0 && (
-              <div className="monster-status muted small">{m.status.join(", ")}</div>
-            )}
           </div>
-        ))}
+
+          <div className="monster-group">
+            {mons.map((m) => (
+              <div key={m.n} className={`actor actor-monster ${m.is_boss ? "boss" : ""}`}>
+                <Sprite name={m.name} size={m.is_boss ? 150 : 118} />
+                <div className="actor-name">
+                  {m.name}
+                  {m.is_boss && <em className="boss-tag">BOSS</em>}
+                </div>
+                <div className="bar bar-sm">
+                  <div
+                    className="bar-fill"
+                    style={{ width: `${(m.hp / m.max_hp) * 100}%`, background: "var(--hp)" }}
+                  />
+                  <span className="bar-label">
+                    {m.hp}/{m.max_hp}
+                  </span>
+                </div>
+                {m.status.length > 0 && (
+                  <div className="actor-status muted small">{m.status.join(", ")}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="combat-actions">
