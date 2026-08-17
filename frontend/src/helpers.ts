@@ -71,6 +71,19 @@ export function monsterIcon(name: string): string {
   return MONSTER_ICONS[name] || "skeleton";
 }
 
+// NPC role -> full-color sprite file (names/roles come from data.NPCS).
+const NPC_SPRITES: Record<string, string> = {
+  shop: "merchant",
+  sage: "sage",
+  blacksmith: "blacksmith",
+  lore: "wandering_soul",
+  hermit: "hermit",
+};
+
+export function npcSprite(role: string): string {
+  return NPC_SPRITES[role] || "merchant";
+}
+
 export function statLine(stats: Record<string, number> | undefined): string {
   if (!stats) return "";
   const parts: string[] = [];

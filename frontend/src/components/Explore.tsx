@@ -2,7 +2,8 @@ import { useState } from "react";
 import type { Action, Snapshot } from "../types";
 import { Icon } from "./Icon";
 import { DungeonMap } from "./DungeonMap";
-import { rarityColor } from "../helpers";
+import { DungeonView } from "./DungeonView";
+import { rarityColor, npcSprite } from "../helpers";
 
 // Turn a freeform line into a structured action when it matches a command,
 // otherwise pass it through as freeform narration.
@@ -35,6 +36,21 @@ export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Acti
   return (
     <div className="explore">
       {snap.map && <DungeonMap map={snap.map} />}
+      <DungeonView>
+        {npc && (
+          <div className="actor actor-npc">
+            <img
+              className="sprite"
+              src={`/sprites/${npcSprite(npc.role)}.svg`}
+              alt={npc.name}
+              width={150}
+              height={158}
+              draggable={false}
+            />
+            <div className="actor-name">{npc.name}</div>
+          </div>
+        )}
+      </DungeonView>
       <div className="room">
         <div className="room-head">
           <span className="room-type">{room.label}</span>

@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="floorG" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#2b2738"/>
+      <stop offset="0.5" stop-color="#211d2c"/>
+      <stop offset="1" stop-color="#171420"/>
+    </linearGradient>
+    <linearGradient id="ceilG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#080610"/>
+      <stop offset="1" stop-color="#141019"/>
+    </linearGradient>
+    <linearGradient id="wallLG" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1a1622"/>
+      <stop offset="1" stop-color="#221d2e"/>
+    </linearGradient>
+    <linearGradient id="wallRG" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#171320"/>
+      <stop offset="1" stop-color="#1f1a29"/>
+    </linearGradient>
+    <linearGradient id="backG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#241f30"/>
+      <stop offset="1" stop-color="#1a1622"/>
+    </linearGradient>
+    <radialGradient id="doorGlow" cx="0.5" cy="0.85" r="0.75">
+      <stop offset="0" stop-color="#3a2a1a"/>
+      <stop offset="0.5" stop-color="#1a1420"/>
+      <stop offset="1" stop-color="#0a0710"/>
+    </radialGradient>
+    <radialGradient id="torchGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="rgba(255,170,70,0.5)"/>
+      <stop offset="0.5" stop-color="rgba(255,140,50,0.16)"/>
+      <stop offset="1" stop-color="rgba(255,140,50,0)"/>
+    </radialGradient>
+    <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffcf5a"/>
+      <stop offset="0.6" stop-color="#ff8a2a"/>
+      <stop offset="1" stop-color="#e0491f"/>
+    </linearGradient>
+    <radialGradient id="vig" cx="0.5" cy="0.45" r="0.72">
+      <stop offset="0" stop-color="rgba(0,0,0,0)"/>
+      <stop offset="0.55" stop-color="rgba(0,0,0,0.06)"/>
+      <stop offset="1" stop-color="rgba(3,2,7,0.8)"/>
+    </radialGradient>
+    <clipPath id="clipFloor"><polygon points="0,400 900,400 650,270 250,270"/></clipPath>
+    <clipPath id="clipBack"><polygon points="250,70 650,70 650,270 250,270"/></clipPath>
+    <clipPath id="clipLeft"><polygon points="0,0 250,70 250,270 0,400"/></clipPath>
+    <clipPath id="clipRight"><polygon points="900,0 650,70 650,270 900,400"/></clipPath>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="400" fill="#080610"/>
+  <polygon points="0,0 900,0 650,70 250,70" fill="url(#ceilG)"/>
+  <polygon points="0,0 250,70 250,270 0,400" fill="url(#wallLG)"/>
+  <polygon points="900,0 650,70 650,270 900,400" fill="url(#wallRG)"/>
+  <g clip-path="url(#clipLeft)">    <line x1="101" y1="38" x2="101" y2="348" stroke="#100d16" stroke-width="1.5" opacity="0.5"/>
+    <line x1="202" y1="76" x2="202" y2="296" stroke="#100d16" stroke-width="1.5" opacity="0.5"/>
+    <line x1="304" y1="115" x2="304" y2="245" stroke="#100d16" stroke-width="1.5" opacity="0.5"/></g>
+  <g clip-path="url(#clipRight)">    <line x1="799" y1="38" x2="799" y2="348" stroke="#100d16" stroke-width="1.5" opacity="0.5"/>
+    <line x1="698" y1="76" x2="698" y2="296" stroke="#100d16" stroke-width="1.5" opacity="0.5"/>
+    <line x1="596" y1="115" x2="596" y2="245" stroke="#100d16" stroke-width="1.5" opacity="0.5"/></g>
+  <polygon points="250,70 650,70 650,270 250,270" fill="url(#backG)"/>
+  <g clip-path="url(#clipBack)">    <line x1="250" y1="110" x2="650" y2="110" stroke="#141119" stroke-width="1.5" opacity="0.6"/>
+    <line x1="250" y1="150" x2="650" y2="150" stroke="#141119" stroke-width="1.5" opacity="0.6"/>
+    <line x1="250" y1="190" x2="650" y2="190" stroke="#141119" stroke-width="1.5" opacity="0.6"/>
+    <line x1="250" y1="230" x2="650" y2="230" stroke="#141119" stroke-width="1.5" opacity="0.6"/>    <line x1="300" y1="70" x2="300" y2="270" stroke="#141119" stroke-width="1" opacity="0.4"/>
+    <line x1="350" y1="70" x2="350" y2="270" stroke="#141119" stroke-width="1" opacity="0.4"/>
+    <line x1="400" y1="70" x2="400" y2="270" stroke="#141119" stroke-width="1" opacity="0.4"/>
+    <line x1="500" y1="70" x2="500" y2="270" stroke="#141119" stroke-width="1" opacity="0.4"/>
+    <line x1="550" y1="70" x2="550" y2="270" stroke="#141119" stroke-width="1" opacity="0.4"/>
+    <line x1="600" y1="70" x2="600" y2="270" stroke="#141119" stroke-width="1" opacity="0.4"/></g>
+      <path d="M 402 270 L 402 128 Q 402 96 450 96 Q 498 96 498 128 L 498 270 Z" fill="url(#doorGlow)" stroke="#0a0810" stroke-width="2.5"/>
+    <path d="M 414 270 L 414 132 Q 414 108 450 108 Q 486 108 486 132 L 486 270 Z" fill="#05040a"/>
+    <path d="M 450 270 L 450 150" stroke="#1a1424" stroke-width="2" opacity="0.6"/>
+  <polygon points="0,400 900,400 650,270 250,270" fill="url(#floorG)"/>
+  <g clip-path="url(#clipFloor)">    <line x1="0" y1="400" x2="450" y2="170" stroke="#0c0a12" stroke-width="1.5" opacity="0.55"/>
+    <line x1="112" y1="400" x2="450" y2="170" stroke="#0c0a12" stroke-width="1.5" opacity="0.55"/>
+    <line x1="225" y1="400" x2="450" y2="170" stroke="#0c0a12" stroke-width="1.5" opacity="0.55"/>
+    <line x1="337" y1="400" x2="450" y2="170" stroke="#0c0a12" stroke-width="1.5" opacity="0.55"/>
+    <line x1="450" y1="400" x2="450" y2="170" stroke="#0c0a12" stroke-width="1.5" opacity="0.55"/>
+    <line x1="562" y1="400" x2="450" y2="170" stroke="#0c0a12" stroke-width="1.5" opacity="0.55"/>
+    <line x1="675" y1="400" x2="450" y2="170" stroke="#0c0a12" stroke-width="1.5" opacity="0.55"/>
+    <line x1="787" y1="400" x2="450" y2="170" stroke="#0c0a12" stroke-width="1.5" opacity="0.55"/>
+    <line x1="900" y1="400" x2="450" y2="170" stroke="#0c0a12" stroke-width="1.5" opacity="0.55"/>    <line x1="0" y1="270" x2="900" y2="270" stroke="#0c0a12" stroke-width="1.5" opacity="0.5"/>
+    <line x1="0" y1="282" x2="900" y2="282" stroke="#0c0a12" stroke-width="1.5" opacity="0.5"/>
+    <line x1="0" y1="298" x2="900" y2="298" stroke="#0c0a12" stroke-width="1.5" opacity="0.5"/>
+    <line x1="0" y1="318" x2="900" y2="318" stroke="#0c0a12" stroke-width="1.5" opacity="0.5"/>
+    <line x1="0" y1="344" x2="900" y2="344" stroke="#0c0a12" stroke-width="1.5" opacity="0.5"/>
+    <line x1="0" y1="376" x2="900" y2="376" stroke="#0c0a12" stroke-width="1.5" opacity="0.5"/></g>
+      <g>
+      <circle cx="120" cy="170" r="30" fill="url(#torchGlow)"/>
+      <rect x="117" y="176" width="6" height="22" rx="2" fill="#3a2a1a"/>
+      <path d="M 120 152 C 111 164 113 174 120 176 C 127 174 129 164 120 152 Z" fill="url(#flame)"/>
+      <path d="M 120 160 C 116 167 117 173 120 175 C 123 173 124 167 120 160 Z" fill="#ffe08a"/>
+    </g>
+      <g>
+      <circle cx="780" cy="170" r="30" fill="url(#torchGlow)"/>
+      <rect x="777" y="176" width="6" height="22" rx="2" fill="#3a2a1a"/>
+      <path d="M 780 152 C 771 164 773 174 780 176 C 787 174 789 164 780 152 Z" fill="url(#flame)"/>
+      <path d="M 780 160 C 776 167 777 173 780 175 C 783 173 784 167 780 160 Z" fill="#ffe08a"/>
+    </g>
+      <g>
+      <ellipse cx="180" cy="350" rx="24" ry="9" fill="#0c0a11" opacity="0.5"/>
+      <path d="M 160 312 L 160 348 Q 180 356 200 348 L 200 312 Q 180 304 160 312 Z" fill="#4a3320"/>
+      <ellipse cx="180" cy="312" rx="20" ry="8" fill="#5c4128"/>
+      <path d="M 160 326 Q 180 336 200 326" stroke="#2a1c10" stroke-width="3" fill="none"/>
+      <path d="M 160 338 Q 180 348 200 338" stroke="#2a1c10" stroke-width="3" fill="none"/>
+    </g>
+      <g stroke="#c9c2b0" stroke-width="3" stroke-linecap="round" opacity="0.8">
+      <line x1="702" y1="350" x2="733" y2="342"/>
+      <line x1="714" y1="360" x2="740" y2="353"/>
+      <circle cx="702" cy="350" r="3" fill="#c9c2b0" stroke="none"/>
+      <circle cx="733" cy="342" r="3" fill="#c9c2b0" stroke="none"/>
+    </g>
+  <rect x="0" y="0" width="900" height="400" fill="url(#vig)"/>
+</svg>

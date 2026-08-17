@@ -863,25 +863,27 @@ body {
 .combat-head {
   text-align: center;
 }
-.dungeon-stage {
+.dungeon-view {
   position: relative;
-  min-height: 288px;
+  min-height: 260px;
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
   background:
-    url(/sprites/dungeon_room.svg) center bottom / cover no-repeat,
+    url(/sprites/dungeon_fp.svg) center / cover no-repeat,
     #0a0810;
-  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.55);
 }
-.stage-actors {
+.dungeon-actors {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 16px;
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 30px 20px;
+  justify-content: center;
+  gap: 18px;
+  padding: 0 20px;
 }
 .actor {
   display: flex;
@@ -908,13 +910,8 @@ body {
   flex: none;
   width: 116px;
 }
-.actor-player .actor-name {
+.actor-npc .actor-name {
   color: var(--gold);
-}
-.monster-group {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
 }
 .actor-monster.boss .sprite {
   filter: drop-shadow(0 0 14px rgba(200, 60, 40, 0.5)) drop-shadow(0 8px 8px rgba(0, 0, 0, 0.55));
