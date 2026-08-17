@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Local CLI saves
+data/save.json
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

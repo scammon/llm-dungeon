@@ -1,0 +1,111 @@
+import { useState } from "react";
+import type { Action, Snapshot } from "../types";
+import { Icon } from "./Icon";
+
+// Turn a freeform line into a structured action when it matches a command,
+// otherwise pass it through as freeform narration.
+function parseCommand(text: string): Action {
+  const t = text.trim();
+  let m: RegExpMatchArray | null;
+  if ((m = t.match(/^buy\s+(\d+)$/i))) return { type: "buy", n: +m[1] };
+  if ((m = t.match(/^sell\s+(\d+)$/i))) return { type: "sell", n: +m[1] };
+  if ((m = t.match(/^equip\s+(.+)$/i))) return { type: "equip", arg: m[1] };
+  if ((m = t.match(/^unequip\s+(\w+)$/i))) return { type: "unequip", slot: m[1] };
+  if ((m = t.match(/^drop\s+(.+)$/i))) return { type: "drop", arg: m[1] };
+  if ((m = t.match(/^examine\s+(.+)$/i))) return { type: "examine", text: m[1] };
+  if ((m = t.match(/^talk\s+(.+)$/i))) return { type: "talk", text: m[1] };
+  return { type: "freeform", text: t };
+}
+
+export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Action) => void }) {
+  const [cmd, setCmd] = useState("");
+  const room = snap.room!;
+  const npc = room.npcs[0];
+  const depth = room.depth;
+
+  const submit = () => {
+    if (!cmd.trim()) return;
+    onAction(parseCommand(cmd));
+    setCmd("");
+  };
+
+  return (
+    <div className="explore">
+      <div className="room">
+        <div className="room-head">
+          <span className="room-type">{room.label}</span>
+          <span className="muted">· depth {depth}</span>
+        </div>
+        <p className="room-scene">{room.scene}</p>
+
+        {npc && (
+          <div className="npc-row">
+            <Icon name="ui_trophy" size={18} className="c-gold" />
+            <span>
+              <b>{npc.name}</b> <em className="muted">({npc.role})</em>
+            </span>
+          </div>
+        )}
+
+        {(room.item_count > 0 || room.tome_count > 0 || room.has_lore) && (
+          <div className="room-hints muted small">
+            {room.item_count > 0 && <span>{room.item_count} item(s) here</span>}
+            {room.tome_count > 0 && <span>{room.tome_count} tome(s)</span>}
+            {room.has_lore && <span>a lore tablet</span>}
+          </div>
+        )}
+      </div>
+
+      <div className="action-grid">
+        {room.doors.map((d) => (
+          <button key={d.n} className="btn" onClick={() => onAction({ type: "move", n: d.n })}>
+            <span className="door-n">{d.n}</span> {d.label}
+            {!d.discovered && <span className="muted"> ?</span>}
+          </button>
+        ))}
+        {room.has_stairs && (
+          <button className="btn btn-primary" onClick={() => onAction({ type: "descend" })}>
+            <Icon name="ui_skull" size={16} /> Descend to depth {depth + 1}
+          </button>
+        )}
+        {npc?.role === "shop" && (
+          <button className="btn" onClick={() => onAction({ type: "buy" })}>
+            Browse wares
+          </button>
+        )}
+        {npc && (npc.role === "shop" || npc.role === "blacksmith") && (
+          <button className="btn" onClick={() => onAction({ type: "sell", n: 1 })} title="Type 'sell N' to sell pack item N">
+            Sell…
+          </button>
+        )}
+        {npc?.role === "sage" && (
+          <button className="btn" onClick={() => onAction({ type: "learn" })}>
+            Learn a spell
+          </button>
+        )}
+        {(npc?.role === "hermit" || npc?.role === "blacksmith") && (
+          <button className="btn" onClick={() => onAction({ type: "heal" })}>
+            Be mended (15g)
+          </button>
+        )}
+        {room.type === "camp" && (
+          <button className="btn" onClick={() => onAction({ type: "rest" })}>
+            Rest by the fire
+          </button>
+        )}
+      </div>
+
+      <div className="cmd-row">
+        <input
+          value={cmd}
+          placeholder="say or do something… (e.g. examine the tablet, talk to them, buy 2)"
+          onChange={(e) => setCmd(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+        />
+        <button className="btn btn-primary" onClick={submit} disabled={!cmd.trim()}>
+          Do
+        </button>
+      </div>
+    </div>
+  );
+}
