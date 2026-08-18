@@ -41,7 +41,7 @@ export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Acti
           <div className="actor actor-npc">
             <img
               className="sprite"
-              src={`/sprites/${npcSprite(npc.role)}.svg`}
+              src={`/sprites/${npcSprite(npc.role)}.png`}
               alt={npc.name}
               width={150}
               height={158}

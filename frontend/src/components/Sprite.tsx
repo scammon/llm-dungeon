@@ -1,7 +1,7 @@
 import { monsterIcon } from "../helpers";
 
-// Full-color isometric enemy sprite (1987 Dungeon Master style).
-// Renders a standalone SVG from /sprites/<name>.svg so its colors show
+// Full-color enemy sprite (1987 Dungeon Master style).
+// Renders a generated PNG from /sprites/<name>.png so its colors show
 // (unlike Icon, which is a monochrome CSS mask).
 export function Sprite({ name, size = 132, className = "" }: {
   name: string; size?: number; className?: string;
@@ -9,7 +9,7 @@ export function Sprite({ name, size = 132, className = "" }: {
   const file = monsterIcon(name);
   return (
     <img
-      src={`/sprites/${file}.svg`}
+      src={`/sprites/${file}.png`}
       alt={name}
       width={size}
       height={Math.round(size * 1.05)}

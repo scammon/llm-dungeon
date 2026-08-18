@@ -1014,13 +1014,43 @@ select:focus {
 
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
+  /* Topbar: drop the save name, let chips wrap so nothing overlaps */
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .topbar-save {
+    display: none;
+  }
+  .chip {
+    padding: 3px 9px;
+    font-size: 12px;
+  }
+
+  /* Content: stack + scroll instead of a fixed grid that overflows */
   .content {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
   }
+  .stage,
   .panel {
-    max-height: 45vh;
+    flex: none;
   }
+
+  /* Dungeon actors: shrink sprites + wrap so they fit the width */
+  .dungeon-view {
+    min-height: 200px;
+  }
+  .dungeon-actors {
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
+  .actor .sprite {
+    max-width: 92px;
+    height: auto;
+  }
+
   .hub-cols,
   .combat-actions {
     grid-template-columns: 1fr;
