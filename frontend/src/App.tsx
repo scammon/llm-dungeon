@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Action, SaveSummary, Snapshot } from "./types";
 import {
   listSaves,
@@ -25,6 +25,13 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // On mobile the content column scrolls; jump back to the top whenever the
+  // screen changes so the dungeon view (not the feed/panel) is what you see.
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [snap?.screen]);
 
   const refreshSaves = useCallback(async () => {
     setSaves(await listSaves());
@@ -197,7 +204,7 @@ export default function App() {
         </div>
       )}
 
-      <div className="content">
+      <div className="content" ref={contentRef}>
         <div className="stage">
           {snap.screen === "hub" && <Hub snap={snap} onAction={doAction} />}
           {snap.screen === "explore" && <Explore snap={snap} onAction={doAction} />}

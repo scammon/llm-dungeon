@@ -28,7 +28,7 @@ export function Combat({ snap, onAction }: { snap: Snapshot; onAction: (a: Actio
         {combat.defending && <span className="c-shield"> · defending</span>}
       </div>
 
-      <DungeonView>
+      <DungeonView roomType={snap.room?.type}>
         {mons.map((m) => (
           <div key={m.n} className={`actor actor-monster ${m.is_boss ? "boss" : ""}`}>
             <Sprite name={m.name} size={m.is_boss ? 188 : 148} />

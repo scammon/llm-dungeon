@@ -1,9 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Action, Snapshot } from "../types";
 import { Icon } from "./Icon";
 import { DungeonMap } from "./DungeonMap";
 import { DungeonView } from "./DungeonView";
 import { rarityColor, npcSprite } from "../helpers";
+
+// True when the viewport matches the mobile breakpoint in styles.css.
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia("(max-width: 860px)").matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 860px)");
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isMobile;
+}
 
 // Turn a freeform line into a structured action when it matches a command,
 // otherwise pass it through as freeform narration.
@@ -22,6 +36,9 @@ function parseCommand(text: string): Action {
 
 export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Action) => void }) {
   const [cmd, setCmd] = useState("");
+  const isMobile = useIsMobile();
+  const [sceneOpen, setSceneOpen] = useState(!isMobile);
+  useEffect(() => { setSceneOpen(!isMobile); }, [isMobile]);
   const room = snap.room!;
   const npc = room.npcs[0];
   const depth = room.depth;
@@ -36,7 +53,7 @@ export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Acti
   return (
     <div className="explore">
       {snap.map && <DungeonMap map={snap.map} />}
-      <DungeonView>
+      <DungeonView roomType={room.type}>
         {npc && (
           <div className="actor actor-npc">
             <img
@@ -56,7 +73,10 @@ export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Acti
           <span className="room-type">{room.label}</span>
           <span className="muted">· depth {depth}</span>
         </div>
-        <p className="room-scene">{room.scene}</p>
+        <p className={`room-scene${sceneOpen ? "" : " clamped"}`}>{room.scene}</p>
+        <button className="scene-toggle" onClick={() => setSceneOpen(!sceneOpen)}>
+          {sceneOpen ? "less" : "more"}
+        </button>
 
         {npc && (
           <div className="npc-row">
