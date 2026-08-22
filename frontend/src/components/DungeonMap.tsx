@@ -67,7 +67,7 @@ const TYPE_COLOR: Record<string, string> = {
   forge: "var(--forge)",
 };
 
-export function DungeonMap({ map }: { map: FloorMap }) {
+export function DungeonMap({ map, onSelect }: { map: FloorMap; onSelect?: (roomId: string) => void }) {
   const pos = useMemo(() => layout(map.rooms, map.start), [map]);
   const byId = useMemo(() => new Map(map.rooms.map((r) => [r.id, r])), [map]);
 
@@ -123,7 +123,13 @@ export function DungeonMap({ map }: { map: FloorMap }) {
             const p = pos.get(r.id)!;
             const color = TYPE_COLOR[r.type] ?? "var(--muted)";
             return (
-              <g key={r.id} transform={`translate(${p.x},${p.y})`}>
+              <g
+                key={r.id}
+                transform={`translate(${p.x},${p.y})`}
+                className={onSelect ? "map-node-wrap" : undefined}
+                onClick={() => onSelect && onSelect(r.id)}
+                style={onSelect ? { cursor: "pointer" } : undefined}
+              >
                 {r.is_current && <circle r={R + 6} className="map-current-ring" />}
                 {r.is_exit && <circle r={R + 4} className="map-exit-ring" />}
                 <circle

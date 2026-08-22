@@ -52,7 +52,12 @@ export function Explore({ snap, onAction }: { snap: Snapshot; onAction: (a: Acti
 
   return (
     <div className="explore">
-      {snap.map && <DungeonMap map={snap.map} />}
+      {snap.map && (
+        <DungeonMap
+          map={snap.map}
+          onSelect={(roomId) => onAction({ type: "move_room", room: roomId })}
+        />
+      )}
       <DungeonView roomType={room.type}>
         {npc && (
           <div className="actor actor-npc">

@@ -213,4 +213,5 @@ export interface Action {
   arg?: string;
   slot?: string;
   text?: string;
+  room?: string;
 }
