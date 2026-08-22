@@ -452,18 +452,20 @@ class Engine:
         """Move to a connected room by id (used when clicking a map node)."""
         room = self.floor["rooms"][self.current]
         conns = room["connections"]
-        idx = conns.index(room_id) if room_id in conns else -1
-        if idx < 0:
+        room_id = str(room_id)
+        conns = [str(c) for c in conns]
+        if room_id not in conns:
             self._feed("system", "No door leads there from here.")
             return
         self.prev_room = self.current
-        self.current = room_id
-        self._maybe_wanderer_spawn(room_id)
+        self.current = int(room_id) if room_id.isdigit() else room_id
+        self._maybe_wanderer_spawn(self.current)
         self._enter_room()
 
     def _maybe_wanderer_spawn(self, room_id):
         """Small chance a wanderer stalks a room as you move in. Skips safe
         rooms (camp/market) so shops and rest spots stay safe."""
+        room_id = int(room_id) if str(room_id).isdigit() else room_id
         room = self.floor["rooms"][room_id]
         if room["type"] in ("camp", "market"):
             return
@@ -473,7 +475,7 @@ class Engine:
             return
         if self.rng.random() > 0.12:
             return
-        wanderers = roll_monsters(self.rng, self.depth, count=self.rng.randint(1, 2))
+        wanderers = gen.roll_monsters(self.rng, self.depth, count=self.rng.randint(1, 2))
         room["monsters"].extend(wanderers)
         self._feed("combat", f"Something stirs in the dark — a {wanderers[0]['name']} appears!")
 

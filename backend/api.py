@@ -27,6 +27,7 @@ class Action(BaseModel):
     arg: Optional[str] = None
     slot: Optional[str] = None
     text: Optional[str] = None
+    room: Optional[str] = None
 
 
 @router.get("/saves")
