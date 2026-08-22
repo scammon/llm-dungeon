@@ -1,9 +1,10 @@
 """In-memory engine cache keyed by save id.
 
 Holds one Engine per active save. The Engine carries the live run state
-(floors/player/combat) plus the MetaSave. Meta is persisted to the DB after
-every action; the run state is ephemeral (a cold start rebuilds the engine
-from the saved meta, i.e. back at camp).
+(floors/player/combat) plus the MetaSave. Both meta and the in-progress run are
+persisted to the DB after every action, so a cold start rebuilds the engine
+from the saved run (resuming mid-run) when one exists, else from meta (back at
+camp).
 
 Per-save locks serialize a single player's actions without blocking other
 saves. The LLM (narrator) call happens inside engine.act(), so the lock is
@@ -39,13 +40,18 @@ def get_engine(save_id):
     meta = db.load_meta(save_id)
     if meta is None:
         return None
-    eng = Engine(meta, get_narrator())
+    run = db.load_run(save_id)
+    if run is not None:
+        eng = Engine.restore(meta, get_narrator(), run)
+    else:
+        eng = Engine(meta, get_narrator())
     _engines[save_id] = eng
     return eng
 
 
 def persist(save_id, engine):
     db.get_store().update_meta(save_id, engine.meta.to_dict())
+    db.get_store().update_run(save_id, engine.to_state())
 
 
 def drop(save_id):

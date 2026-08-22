@@ -1,9 +1,9 @@
 """Save persistence.
 
 A "save" is a named MetaSave (the roguelite meta-progression). The in-progress
-run (floors/player/combat) is NOT persisted — it lives in the in-memory engine
-store and is rebuilt from the save's meta on a cold start (back at camp). This
-matches the CLI, which only ever persisted meta.
+run (floors/player/combat) IS also persisted in a `run` JSONB column, so a cold
+start resumes the run where it left off instead of resetting to camp. Meta
+always persists; run persists only while a run is in progress.
 
 Two interchangeable backends behind one interface:
   * PostgresStore  - the real Dailey DB (DATABASE_URL or DB_* vars).
@@ -32,12 +32,13 @@ def _default_meta():
 
 class SaveRow:
     """A lightweight, JSON-friendly view of a save (no full meta)."""
-    def __init__(self, id, name, meta, created_at, updated_at):
+    def __init__(self, id, name, meta, created_at, updated_at, run=None):
         self.id = id
         self.name = name
         self.meta = meta
         self.created_at = created_at
         self.updated_at = updated_at
+        self.run = run
 
     def summary(self):
         m = self.meta
@@ -80,27 +81,33 @@ class PostgresStore:
                     id          UUID PRIMARY KEY,
                     name        TEXT NOT NULL UNIQUE,
                     meta        JSONB NOT NULL,
+                    run         JSONB,
                     created_at  TIMESTAMPTZ NOT NULL,
                     updated_at  TIMESTAMPTZ NOT NULL
                 )
             """)
+            # migrate pre-existing tables that lack the run column
+            cur.execute("ALTER TABLE saves ADD COLUMN IF NOT EXISTS run JSONB")
 
     def _row(self, cur, r):
         meta = r["meta"]
         if isinstance(meta, (str, bytes)):
             meta = json.loads(meta)
+        run = r["run"]
+        if isinstance(run, (str, bytes)):
+            run = json.loads(run)
         return SaveRow(str(r["id"]), r["name"], meta,
-                       r["created_at"].isoformat(), r["updated_at"].isoformat())
+                        r["created_at"].isoformat(), r["updated_at"].isoformat(), run)
 
     def list(self):
         with self._connect() as conn, conn.cursor() as cur:
-            cur.execute("SELECT id, name, meta, created_at, updated_at "
+            cur.execute("SELECT id, name, meta, run, created_at, updated_at "
                         "FROM saves ORDER BY updated_at DESC")
             return [self._row(cur, r) for r in cur.fetchall()]
 
     def get(self, save_id):
         with self._connect() as conn, conn.cursor() as cur:
-            cur.execute("SELECT id, name, meta, created_at, updated_at "
+            cur.execute("SELECT id, name, meta, run, created_at, updated_at "
                         "FROM saves WHERE id = %s", (save_id,))
             r = cur.fetchone()
             return self._row(cur, r) if r else None
@@ -131,6 +138,13 @@ class PostgresStore:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute("UPDATE saves SET meta = %s, updated_at = %s WHERE id = %s",
                         (Jsonb(meta), _now(), save_id))
+            return cur.rowcount > 0
+
+    def update_run(self, save_id, run):
+        from psycopg.types.json import Jsonb
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute("UPDATE saves SET run = %s, updated_at = %s WHERE id = %s",
+                        (Jsonb(run) if run is not None else None, _now(), save_id))
             return cur.rowcount > 0
 
 
@@ -185,6 +199,15 @@ class MemoryStore:
             row.updated_at = _now().isoformat()
             return True
 
+    def update_run(self, save_id, run):
+        with self._lock:
+            row = self._rows.get(save_id)
+            if not row:
+                return False
+            row.run = run
+            row.updated_at = _now().isoformat()
+            return True
+
 
 # ===========================================================================
 # Selection
@@ -226,3 +249,11 @@ def load_meta(save_id):
     if not row:
         return None
     return MetaSave(**row.meta)
+
+
+def load_run(save_id):
+    """Return the persisted run-state for a save (or None)."""
+    row = get_store().get(save_id)
+    if not row or not row.run:
+        return None
+    return row.run

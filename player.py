@@ -178,3 +178,32 @@ class Player:
 
     def regen(self):
         self.mana = min(self.max_mana, self.mana + config.MANA_REGEN_PER_TURN)
+
+    # ---- run persistence --------------------------------------------------
+    def to_state(self):
+        return {
+            "gold": self.gold,
+            "equipment": self.equipment,
+            "inventory": list(self.inventory),
+            "grimoire": list(self.grimoire),
+            "run_attunements": dict(self.run_attunements),
+            "status": [dict(s) for s in self.status],
+            "hp": self.hp,
+            "mana": self.mana,
+        }
+
+    @classmethod
+    def restore(cls, meta, rng, state):
+        p = cls(meta, rng)
+        p.gold = state["gold"]
+        p.equipment = state["equipment"]
+        p.inventory = state["inventory"]
+        p.grimoire = state["grimoire"]
+        p.run_attunements = state["run_attunements"]
+        p.status = state["status"]
+        p.hp = state["hp"]
+        p.mana = state["mana"]
+        p._refresh()
+        p.hp = min(p.hp, p.max_hp)
+        p.mana = min(p.mana, p.max_mana)
+        return p

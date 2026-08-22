@@ -263,6 +263,44 @@ class Engine:
         }
 
     # ===================================================================
+    # RUN PERSISTENCE
+    # ===================================================================
+    def to_state(self):
+        """Serialize the in-progress run (None when at camp). JSON-safe."""
+        if not self.in_run:
+            return None
+        return {
+            "ended": self.ended,
+            "floors": self.floors,
+            "depth": self.depth,
+            "current": self.current,
+            "prev_room": self.prev_room,
+            "player": self.player.to_state() if self.player else None,
+            "combat": self.combat.to_state() if self.combat else None,
+            "rng": self.rng.getstate(),
+            "feed": list(self.feed),
+        }
+
+    @classmethod
+    def restore(cls, meta, narrator, state):
+        g = state
+        eng = cls(meta, narrator, seed=None)
+        eng.ended = g["ended"]
+        eng.floors = g["floors"]
+        eng.depth = g["depth"]
+        eng.floor = eng.floors[eng.depth - 1]
+        eng.current = g["current"]
+        eng.prev_room = g["prev_room"]
+        rs = g["rng"]
+        eng.rng.setstate((rs[0], tuple(rs[1]), rs[2]))
+        if g.get("player"):
+            eng.player = Player.restore(eng.meta, eng.rng, g["player"])
+        if g.get("combat"):
+            eng.combat = Combat.restore(eng.player, eng, g["combat"])
+        eng.feed = deque(g["feed"], maxlen=300)
+        return eng
+
+    # ===================================================================
     # HUB
     # ===================================================================
     def _hub_act(self, t, action):

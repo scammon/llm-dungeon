@@ -22,6 +22,30 @@ class Combat:
         self.defending = False
         self.log = []
 
+    # ---- run persistence --------------------------------------------------
+    def to_state(self):
+        return {
+            "monsters": self.monsters,
+            "turn": self.turn,
+            "over": self.over,
+            "result": self.result,
+            "defending": self.defending,
+            "log": list(self.log),
+        }
+
+    @classmethod
+    def restore(cls, player, game, state):
+        c = object.__new__(cls)
+        c.player = player
+        c.game = game
+        c.monsters = state["monsters"]
+        c.turn = state["turn"]
+        c.over = state["over"]
+        c.result = state["result"]
+        c.defending = state["defending"]
+        c.log = state["log"]
+        return c
+
     # ---- helpers --------------------------------------------------------
     def alive(self):
         return [m for m in self.monsters if m["alive"]]
