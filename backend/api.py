@@ -4,7 +4,7 @@ The client is a thin SPA: it lists/creates/deletes saves, fetches a save's
 current state snapshot, and posts one action at a time. Every response to a
 state/action call is the full engine snapshot the UI renders.
 """
-from typing import Optional
+from typing import Optional, Union
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -27,7 +27,7 @@ class Action(BaseModel):
     arg: Optional[str] = None
     slot: Optional[str] = None
     text: Optional[str] = None
-    room: Optional[str] = None
+    room: Optional[Union[int, str]] = None
 
 
 @router.get("/saves")
